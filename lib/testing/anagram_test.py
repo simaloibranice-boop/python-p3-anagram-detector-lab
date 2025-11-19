@@ -1,24 +1,50 @@
+import pytest
 from anagram import Anagram
 
+
 class TestAnagram:
-    '''Class Anagram in anagram.py'''
+    @pytest.fixture
+    def detector(self):
+        return Anagram("listen")
 
     def test_instantiates_with_word(self):
-        '''instantiates with a single argument, a word.'''
-        assert(Anagram("word"))
+        """Test that Anagram can be instantiated with a word."""
+        anagram = Anagram("word")
+        assert anagram.word == "word"
+        assert anagram.sorted_word == sorted("word")
 
     def test_has_match_method(self):
-        '''contains a method called "match".'''
-        assert(Anagram.match)
+        """Test that the match method exists."""
+        assert hasattr(Anagram, "match")
 
-    def test_does_not_match_returns_empty_list(self):
-        '''returns an empty list if the input list contains no words that match the initialized word.'''
-        assert(Anagram("word").match(["hello", "goodbye"]) == [])
+    def test_no_matches_returns_empty_list(self):
+        """Test that no matches return an empty list."""
+        detector = Anagram("word")
+        result = detector.match(["hello", "goodbye"])
+        assert result == []
 
-    def test_match_one_returns_list_length_one(self):
-        '''returns a list with one element when one element of the input list matches the initialized word.'''
-        assert(Anagram("enlist").match(["listen", "poison", "hello"]) == ["listen"])
+    def test_single_match_returns_list_with_one_item(self):
+        """Test matching one anagram."""
+        detector = Anagram("enlist")
+        result = detector.match(["listen", "poison", "hello"])
+        assert result == ["listen"]
 
-    def test_match_two_returns_list_length_two(self):
-        '''returns a list with two elements when two elements of the input list match the initialized word.'''
-        assert(Anagram("enlist").match(["listen", "silent", "hippopotamus"]) == ["listen", "silent"])
+    def test_multiple_matches_returns_list_with_multiple_items(self):
+        """Test matching multiple anagrams."""
+        detector = Anagram("enlist")
+        result = detector.match(["listen", "silent", "hippopotamus"])
+        assert result == ["listen", "silent"]
+
+    @pytest.mark.parametrize(
+        "word, candidates, expected",
+        [
+            ("listen", ["enlists", "google", "inlets", "banana"], ["inlets"]),
+            ("allergy", ["gallery", "ballerina", "regally", "clergy"], ["gallery", "regally"]),
+            ("Orchestra", ["cashregister", "Carthorse", "radishes"], ["Carthorse"]),
+        ],
+    )
+    def test_parametrized_matches(self, word, candidates, expected):
+        """Test various anagram scenarios using parametrized tests."""
+        detector = Anagram(word)
+        result = detector.match(candidates)
+        assert result == expected
